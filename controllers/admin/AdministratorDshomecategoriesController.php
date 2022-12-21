@@ -22,46 +22,42 @@ class AdministratorDshomecategoriesController extends ModuleAdminController
     {
         parent::__construct();
 
-        if (!Tools::isSubmit('array') && !Tools::isSubmit('matrix')) {
+        if (!Tools::isSubmit('value') && !Tools::isSubmit('id_category')) {
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules').'&configure=dshomecategories');
         }
     }
 
     public function ajaxProcessCall()
     {
-        $ids_state = Tools::getValue('array');
-        $this->addState($ids_state);
-    }
-
-    public function ajaxProcessConfiguration()
-    {
-        $matrix = Configuration::updateValue('DSDYNAMICPRICE_MATRIX', Tools::getValue('matrix'));
-        $express = Configuration::updateValue('DSDYNAMICPRICE_EXPRESS', Tools::getValue('express'));
-
-        if ($matrix === false || $express === false) {
-            echo Tools::jsonEncode(array('msg' => $this->l('Something gone wrong. Please try again.')));
+        if (!Tools::isSubmit('id_category')) {
+            echo Tools::jsonEncode(array('msg' => $this->l('ID category is missing.'), 'success' => false));
             return;
         }
 
-        echo Tools::jsonEncode(array('success' => $this->l('Save success.')));
+        if (!Tools::isSubmit('value')) {
+            echo Tools::jsonEncode(array('msg' => $this->l('Value for category status is missing.'), 'success' => false));
+            return;
+        }
+
+        $id_category = Tools::getValue('id_category');
+        $value = Tools::getValue('value');
+
+        $this->changeStatus($id_category, $value);
+
+        echo Tools::jsonEncode(array('msg' => $this->l('Status changed.'), 'success' => true));
         return;
     }
 
-    protected function addState($array)
+    protected function changeStatus($id_category, $value)
     {
-        $this->deleteStates();
-        $db = \Db::getInstance();
-        foreach ($array as $id_state) {
-            $sql = "INSERT INTO `" . _DB_PREFIX_ . "dsdynamicprice_state` (`id_state`) VALUES ($id_state)";
-            $db->execute($sql);
-        }
-    }
+        $value = (int) $value;
+        $id_category = (int) $id_category;
 
-    protected function deleteStates()
-    {
         $db = \Db::getInstance();
-        $sql = "DELETE FROM "._DB_PREFIX_."dsdynamicprice_state";
 
-        return DB::getInstance()->execute($sql);
+        $result = $db->update('dshomecategory', array(
+            'status' => $value
+        ), 'id = ' . $id_category);
+        
     }
 }

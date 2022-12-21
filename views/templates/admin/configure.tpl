@@ -23,12 +23,14 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-<div class="card">
-	<div class="card-body">
+<div class="panel panel-default">
+	<div class="panel-body">
 		<div class="row">
 			<div class="col-md-4">
 			</div>
 			<div class="col-md-4">
+				<div id="response" class="alert alert-warning alert-dismissible fade show" role="alert">
+				</div>
 				<div class="table-responsive">
 					<table class="table table-hover">
 						<thead>
@@ -39,16 +41,16 @@
 							</tr>
 						</thead>
 						<tbody>
-							{foreach from=categoryData item=category key=key}
-								<tr>
+							{foreach from=$categoryData item=category}
+								<tr>								
 									<th>{$category.id}</th>
 									<td>{$category.name}</th>
 									<td>
-										<div class="ps-switch ps-switch-sm ps-switch-nolabel ps-switch-center" onclick="toggleCategoryStatus({$category.id});">
-											<input type="radio" name="input-3" id="input-false-3" value="0" {if $category.status = 0}checked{/if}>
-											<label for="input-false-3">{l s="Off" mod='dshomecategories'}</label>
-											<input type="radio" name="input-3" id="input-true-3" value="1" {if $category.status = 1}checked{/if}>
-											<label for="input-true-3">{l s="On" mod='dshomecategories'}</label>
+										<div class="ps-switch ps-switch-sm ps-switch-nolabel ps-switch-center">
+											<input type="radio" class="category-status" data-token='{$token}' data-category="{$category.id}" name="input-{$category.id}" id="input-false-{$category.id}" value="0" {if $category.status == 0}checked{/if}>
+											<label for="input-false-{$category.id}">{l s="Off" mod='dshomecategories'}</label>
+											<input type="radio" class="category-status" data-token='{$token}' data-category="{$category.id}" name="input-{$category.id}" id="input-true-{$category.id}" value="1" {if $category.status == 1}checked{/if}>
+											<label for="input-true-{$category.id}">{l s="On" mod='dshomecategories'}</label>
 											<span class="slide-button"></span>
 										</div>
 									</td>
@@ -61,3 +63,40 @@
 		</div>
 	</div>
 </div>
+<script>
+	$('.category-status').on('click', function(e) {
+		token = $(this).data('token');
+		category = $(this).data('category');
+		value = $(this).val();
+
+		$.ajax({
+			type: 'POST',
+			url: baseAdminDir+'index.php',
+			data: {
+				ajax: true,
+				controller: 'AdministratorDshomecategories',
+				action: 'call',
+				token: token,
+				id_category: category,
+				value: value,
+				
+			},
+			success: function (data) {
+				array = JSON.parse(data);
+				
+				console.log(array);
+				console.log(array.msg)
+				$('#response').removeClass('fade');
+				$('#response').prepend(array.msg);
+
+				setTimeout(() => {
+					$('#response').addClass('fade');
+				}, 4000);
+			},
+			error: function (data) {
+				console.log('An error occurred.');
+				console.log(data);
+			},
+		});
+	})
+</script>

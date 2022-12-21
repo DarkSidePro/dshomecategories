@@ -59,7 +59,8 @@ class Dshomecategories extends Module
      */
     public function install()
     {
-        Configuration::updateValue('DSHOMECATEGORIES_LIVE_MODE', false);
+        include(dirname(__FILE__).'/sql/install.php');
+
         $this->initCategoryData();
 
         return parent::install() &&
@@ -70,8 +71,6 @@ class Dshomecategories extends Module
 
     public function uninstall()
     {
-        Configuration::deleteByName('DSHOMECATEGORIES_LIVE_MODE');
-
         return parent::uninstall();
     }
 
@@ -81,9 +80,13 @@ class Dshomecategories extends Module
     public function getContent()
     {
         $categoryData = $this->getCategoryData();
+        $token = Tools::getAdminTokenLite('AdministratorDshomecategories');
 
         $this->context->smarty->assign('module_dir', $this->_path);
         $this->context->smarty->assign('categoryData', $categoryData);
+        $this->context->smarty->assign('token', $token);
+        $this->context->smarty->assign('link', $this->context->link);
+        $this->context->smarty->assign('namemodules', $this->name);
 
         $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
@@ -126,7 +129,7 @@ class Dshomecategories extends Module
         $sql->select('id_category')
             ->from('category');
         
-        $result = Db::getInstance()->executeS($sql); 
+        $result = Db::getInstance()->executeS($sql);         
 
         return $result;
     }
@@ -143,8 +146,12 @@ class Dshomecategories extends Module
     {
         $categoryIds = $this->getCategories();
 
-        foreach ($categoryIds as $id) {
-            $this->createCategoryEntry($id);
+
+
+        foreach ($categoryIds as $id) {        
+            $id_category = $id['id_category'];
+
+            $this->createCategoryEntry($id_category);
         }
     }
 
@@ -157,7 +164,7 @@ class Dshomecategories extends Module
             ->groupBy('dshc.id')
             ->where('cl.id_lang =' . $this->context->language->id);
         
-        $result = Db::getInstance()->executeS($sql); 
+        $result = Db::getInstance()->executeS($sql);         
 
         return $result;
     }
@@ -165,10 +172,10 @@ class Dshomecategories extends Module
     private function getHomeActiveCategories()
     {
         $sql = new DbQuery();
-        $sql->select('dshc.category_id')
+        $sql->select('dshc.category_id, cl.name, cl.link_rewrite')
             ->from('dshomecategory', 'dshc')
             ->leftJoin('category_lang', 'cl', 'cl.id_category = dshc.category_id')
-            ->where('cl.id_lang =' . $this->context->language->id);
+            ->where('cl.id_lang =' . $this->context->language->id . ' AND dshc.status = 1');
 
         $result = Db::getInstance()->executeS($sql);         
 
@@ -194,6 +201,4 @@ class Dshomecategories extends Module
         $sql = 'DELETE FROM '._DB_PREFIX_.'dshomecategory WHERE category_id =' . $categoryId;
         Db::getInstance()->execute($sql);
     }
-
-    private function 
 }

@@ -26,13 +26,13 @@
 	<div class="card-body">
 		<h5 class="card-title">{l s="Featured categories" mod='dshomecategories'}</h5>
 		<div id="categoriesWrapper">
-			{foreach from=categories item=category key=key}
+			{foreach from=$categories item=category key=key}
 				<div class="col-md-3 ds-category-item">
-					<a href="$link->getCategoryLink($category.category_id, $category.link_rewrite)|escape:'html':'UTF-8'}" title="{$category.name}">
+					<a href="{$link->getCategoryLink($category.category_id, $category.link_rewrite)|escape:'html':'UTF-8'}" title="{$category.name}">
 						<img src="{$link->getCatImageLink($category.link_rewrite, $category.category_id, 'category_default')|escape:'html':'UTF-8'}" class="img-responsive ds-category-image">
 					</a>
 					<h3 class="h3 ds-category-name">
-						<a href="$link->getCategoryLink($category.category_id, $category.link_rewrite)|escape:'html':'UTF-8'}" title="{$category.name}">
+						<a href="{$link->getCategoryLink($category.category_id, $category.link_rewrite)|escape:'html':'UTF-8'}" title="{$category.name}">
 							{$category.name}
 						</a>
 					</h3>
